@@ -29,8 +29,9 @@ app.config['SECRET_KEY'] = 'your-api-secret-key-here'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-# API Keys storage (in production, use a proper database)
-API_KEYS = {"your_api_key_here"}
+# Generate a strong API key (do this once and set it in Vercel's environment variables)
+# Example: 'sk-2f8e1b7c-4e2a-4b8e-9c1d-3e2f1a7b6c5d'
+API_KEY = os.environ.get('MY_API_KEY', 'sk-2f8e1b7c-4e2a-4b8e-9c1d-3e2f1a7b6c5d')
 
 # Initialize models
 model = CLIPModel.from_pretrained("openai/clip-vit-base-patch32")
@@ -40,7 +41,7 @@ easyocr_reader = easyocr.Reader(['en'])
 def require_api_key(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        if request.headers.get('X-API-Key') not in API_KEYS:
+        if request.headers.get('X-API-Key') != API_KEY:
             return jsonify({"error": "Invalid or missing API key"}), 401
         return f(*args, **kwargs)
     decorated_function.__name__ = f.__name__
